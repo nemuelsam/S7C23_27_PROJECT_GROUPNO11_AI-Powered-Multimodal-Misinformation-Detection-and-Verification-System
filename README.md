@@ -1,0 +1,2 @@
+# S7C23_27_PROJECT_GROUPNO11_AI-Powered-Multimodal-Misinformation-Detection-and-Verification-System
+This project proposes an AI-powered web application for detecting misinformation in text, PDFs, images, and videos. It uses DistilBERT for text, EfficientNet for images, and a video analysis model. An MLP fuses the outputs, while SHAP Explainable AI provides transparent explanations for each prediction.
