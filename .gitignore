@@ -1,0 +1,72 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ==============================
+# Conda / Virtual Environments
+# ==============================
+venv/
+.venv/
+env/
+ENV/
+
+# ==============================
+# Datasets
+# ==============================
+data/*
+!data/README.md
+
+datasets/*
+!datasets/README.md
+
+# ==============================
+# Trained Models / Model Weights
+# ==============================
+*.pth
+*.pt
+*.ckpt
+*.onnx
+*.safetensors
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+
+# Model checkpoints / experiment outputs
+checkpoints/
+runs/
+wandb/
+
+# ==============================
+# Environment / Secrets
+# ==============================
+.env
+.env.*
+!.env.example
+
+# ==============================
+# IDE
+# ==============================
+.vscode/
+.idea/
+
+# ==============================
+# Operating System
+# ==============================
+.DS_Store
+Thumbs.db
+
+# ==============================
+# Logs
+# ==============================
+*.log
+
+# ==============================
+# Temporary / Cache Files
+# ==============================
+*.tmp
+*.temp
+*.cache
