@@ -1,0 +1,40 @@
+TEXT MODEL BASELINE
+===================
+
+Model:
+TF-IDF + Logistic Regression
+
+Dataset:
+Fakeddit
+
+Training samples:
+564,000
+
+Validation samples:
+59,342
+
+TF-IDF features:
+50,000
+
+Validation Results:
+-------------------
+Accuracy: 0.8342489299315831
+
+Classification Report:
+
+Class 0:
+Precision: 0.85
+Recall:    0.88
+F1-score: 0.87
+Support:   36,022
+
+Class 1:
+Precision: 0.80
+Recall:    0.77
+F1-score: 0.79
+Support:   23,320
+
+Overall:
+Accuracy: 0.83
+Macro F1: 0.83
+Weighted F1: 0.83
