@@ -35,6 +35,9 @@ datasets/*
 *.pkl
 *.joblib
 
+#Trained DistilBERT model and checkpoints
+ml/text/distilbert_model/
+
 # Model checkpoints / experiment outputs
 checkpoints/
 runs/
