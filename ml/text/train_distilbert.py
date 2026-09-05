@@ -24,7 +24,7 @@ MODEL_NAME = "distilbert-base-uncased"
 
 MAX_LENGTH = 128
 
-OUTPUT_DIR = "ml/text/distilbert_model"
+OUTPUT_DIR = "ml/text/distilbert_model_50k"
 RESULTS_DIR = "results"
 
 
@@ -72,7 +72,7 @@ validate_df = pd.read_csv(VALIDATE_FILE,sep="\t")
 
 # Use a smaller subset for the first training run
 train_df = train_df.sample(
-    n=10000,
+    n=50000,
     random_state=42
 ).reset_index(drop=True)
 
@@ -338,7 +338,7 @@ os.makedirs(
 results_file = os.path.join(
     PROJECT_ROOT,
     RESULTS_DIR,
-    "distilbert_results.txt"
+    "distilbert_results_50k.txt"
 )
 
 with open(results_file, "w") as f:
