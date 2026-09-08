@@ -1,119 +1,200 @@
-import os
-import time
-import requests
+from pathlib import Path
+
 import pandas as pd
+import torch
+from torch.utils.data import Dataset, DataLoader
 from PIL import Image
-from io import BytesIO
-from tqdm.auto import tqdm
+from torchvision import transforms
 
-VAL_DIR = "/content/drive/MyDrive/fakeddit_images/validate"
-os.makedirs(VAL_DIR, exist_ok=True)
 
-FAILED_VAL_FILE = "/content/drive/MyDrive/fakeddit_images/validate_failed.csv"
+# ============================================================
+# 1. Project paths
+# ============================================================
 
-failed_val = []
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-session = requests.Session()
-session.headers.update({
-    "User-Agent": "Mozilla/5.0"
-})
+IMAGE_DIR = (
+    PROJECT_ROOT
+    / "data"
+    / "fakeddit"
+    / "images"
+    / "train_new"
+)
 
-def download_val_image(url, save_path):
-    try:
-        response = session.get(
-            url,
-            timeout=10,
-            allow_redirects=True
-        )
 
-        if response.status_code != 200:
-            return False, f"HTTP {response.status_code}"
+# ============================================================
+# 2. Import the exact 10K dataset
+# ============================================================
+
+from image_dataset_preprocess import train_subset
+
+
+# ============================================================
+# 3. Image transformations
+# ============================================================
+
+train_transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
+])
+
+
+val_transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    )
+])
+
+
+# ============================================================
+# 4. Dataset class
+# ============================================================
+
+class FakedditImageDataset(Dataset):
+
+    def __init__(self, dataframe, image_dir, transform=None):
+
+        self.dataframe = dataframe.reset_index(drop=True)
+        self.image_dir = Path(image_dir)
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.dataframe)
+
+    def __getitem__(self, index):
+
+        row = self.dataframe.iloc[index]
+
+        image_id = str(row["id"]).strip()
+        label = int(row["2_way_label"])
+
+        image_path = self.image_dir / f"{image_id}.jpg"
+
+        if not image_path.exists():
+            raise FileNotFoundError(
+                f"Image not found:\n{image_path}"
+            )
 
         image = Image.open(
-            BytesIO(response.content)
+            image_path
         ).convert("RGB")
 
-        image.save(
-            save_path,
-            "JPEG",
-            quality=90
-        )
+        if self.transform:
+            image = self.transform(image)
 
-        return True, None
-
-    except Exception as e:
-        return False, str(e)
+        return image, label, image_id
 
 
-print("Starting validation download...")
-print("Total images:", len(val_subset))
-print("Saving to:", VAL_DIR)
+# ============================================================
+# 5. Check which images actually exist locally
+# ============================================================
 
-downloaded = 0
-already_exists = 0
-failed_count = 0
+print("\n" + "=" * 60)
+print("Checking local image cache")
+print("=" * 60)
 
-for _, row in tqdm(
-    val_subset.iterrows(),
-    total=len(val_subset),
-    desc="Downloading validation images"
-):
+available_rows = []
 
-    post_id = str(row["id"]).strip()
-    url = str(row["image_url"]).strip()
+missing_count = 0
 
-    save_path = os.path.join(
-        VAL_DIR,
-        post_id + ".jpg"
-    )
+for _, row in train_subset.iterrows():
 
-    if os.path.exists(save_path):
-        already_exists += 1
-        continue
+    image_id = str(row["id"]).strip()
 
-    success, error = download_val_image(
-        url,
-        save_path
-    )
+    image_path = IMAGE_DIR / f"{image_id}.jpg"
 
-    if success:
-        downloaded += 1
+    if image_path.exists():
+
+        available_rows.append(row)
+
     else:
-        failed_count += 1
 
-        failed_val.append({
-            "id": post_id,
-            "image_url": url,
-            "label": int(row["2_way_label"]),
-            "error": error
-        })
-
-    time.sleep(0.03)
+        missing_count += 1
 
 
-# Save failure log
-if failed_val:
-    pd.DataFrame(failed_val).to_csv(
-        FAILED_VAL_FILE,
-        index=False
+train_subset_available = pd.DataFrame(
+    available_rows
+).reset_index(drop=True)
+
+
+print("\nExpected images:", len(train_subset))
+print("Images available:", len(train_subset_available))
+print("Images missing:", missing_count)
+
+
+# ============================================================
+# 6. Safety check
+# ============================================================
+
+if len(train_subset_available) == 0:
+
+    raise RuntimeError(
+        "\nNo cached images were found.\n"
+        "Run image_downloader.py first."
     )
 
 
-image_files = [
-    f for f in os.listdir(VAL_DIR)
-    if f.lower().endswith(
-        (".jpg", ".jpeg", ".png", ".webp")
-    )
-]
+# ============================================================
+# 7. Create dataset
+# ============================================================
 
-print("\n==============================")
-print("VALIDATION DOWNLOAD COMPLETE")
-print("==============================")
-print("Downloaded:", downloaded)
-print("Already existed:", already_exists)
-print("Failed:", failed_count)
-print("Cached validation images:", len(image_files))
+image_dataset = FakedditImageDataset(
+    dataframe=train_subset_available,
+    image_dir=IMAGE_DIR,
+    transform=train_transform
+)
 
-if failed_val:
-    print("\nFailure log:")
-    print(FAILED_VAL_FILE)
+
+# ============================================================
+# 8. Create DataLoader
+# ============================================================
+
+BATCH_SIZE = 16
+
+NUM_WORKERS = 0
+
+train_loader = DataLoader(
+    image_dataset,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    num_workers=NUM_WORKERS,
+    pin_memory=torch.cuda.is_available()
+)
+
+
+# ============================================================
+# 9. Print information
+# ============================================================
+
+print("\n" + "=" * 60)
+print("IMAGE DATASET READY")
+print("=" * 60)
+
+print("\nDataset samples:", len(image_dataset))
+print("Batch size:", BATCH_SIZE)
+print("Number of workers:", NUM_WORKERS)
+
+print("\nLabel distribution:")
+
+print(
+    train_subset_available["2_way_label"]
+    .value_counts()
+    .sort_index()
+)
+
+print("\nFake (0):",
+      (train_subset_available["2_way_label"] == 0).sum())
+
+print("True (1):",
+      (train_subset_available["2_way_label"] == 1).sum())
+
+print("\n✓ Local image dataset ready")
+print("=" * 60)

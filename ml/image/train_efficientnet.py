@@ -1,13 +1,15 @@
-# ============================================================
-# IMPROVED EFFICIENTNET-B0 TRAINING
-# ============================================================
-
-import os
+from pathlib import Path
 import copy
+
 import numpy as np
 import torch
 import torch.nn as nn
-from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
+
+from torchvision.models import (
+    efficientnet_b0,
+    EfficientNet_B0_Weights
+)
+
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -16,31 +18,110 @@ from sklearn.metrics import (
     confusion_matrix
 )
 
+
 # ============================================================
-# 1. Device
+# 1. Project paths
+# ============================================================
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+MODEL_DIR = (
+    PROJECT_ROOT
+    / "ml"
+    / "image"
+    / "models"
+)
+
+MODEL_DIR.mkdir(
+    parents=True,
+    exist_ok=True
+)
+
+
+# ============================================================
+# 2. Checkpoints
+# ============================================================
+
+# Friend's original trained checkpoint
+RESUME_CHECKPOINT = (
+    MODEL_DIR
+    / "efficientnet_b0_best.pth"
+)
+
+# New checkpoints for this NEW 10K training experiment
+NEW_BEST_CHECKPOINT = (
+    MODEL_DIR
+    / "efficientnet_b0_new10k_best.pth"
+)
+
+NEW_FINAL_CHECKPOINT = (
+    MODEL_DIR
+    / "efficientnet_b0_new10k_final.pth"
+)
+
+
+# ============================================================
+# 3. Device
 # ============================================================
 
 device = torch.device(
-    "cuda" if torch.cuda.is_available() else "cpu"
+    "cuda"
+    if torch.cuda.is_available()
+    else "cpu"
 )
 
-print("Device:", device)
+print("=" * 60)
+print("EfficientNet-B0 Image Model Training")
+print("=" * 60)
+
+print("\nDevice:", device)
 
 if device.type == "cuda":
-    print("GPU:", torch.cuda.get_device_name(0))
+
+    print(
+        "GPU:",
+        torch.cuda.get_device_name(0)
+    )
+
+    print(
+        "VRAM:",
+        round(
+            torch.cuda.get_device_properties(0)
+            .total_memory / (1024 ** 3),
+            2
+        ),
+        "GB"
+    )
 
 
 # ============================================================
-# 2. Calculate class weights
+# 4. Load datasets
 # ============================================================
 
-train_labels = train_subset["2_way_label"].astype(int).values
+from image_dataset import train_subset_available
+from image_dataset import train_loader
 
-class_counts = np.bincount(train_labels)
+from validation_dataset import val_loader
 
-# Weight = total samples / (number of classes * class count)
-class_weights = len(train_labels) / (
-    2 * class_counts
+
+# ============================================================
+# 5. Class weights
+# ============================================================
+
+train_labels = (
+    train_subset_available["2_way_label"]
+    .astype(int)
+    .values
+)
+
+class_counts = np.bincount(
+    train_labels
+)
+
+class_weights = (
+    len(train_labels)
+    /
+    (2 * class_counts)
 )
 
 class_weights = torch.tensor(
@@ -49,24 +130,26 @@ class_weights = torch.tensor(
 ).to(device)
 
 print("\nClass counts:")
-print("Fake (0):", class_counts[0])
-print("True (1):", class_counts[1])
 
-print("\nClass weights:")
-print(class_weights)
-
-
-# ============================================================
-# 3. Load pretrained EfficientNet-B0
-# ============================================================
-
-weights = EfficientNet_B0_Weights.DEFAULT
-
-model = efficientnet_b0(
-    weights=weights
+print(
+    "Fake (0):",
+    class_counts[0]
 )
 
-# Replace classifier
+print(
+    "True (1):",
+    class_counts[1]
+)
+
+
+# ============================================================
+# 6. Create EfficientNet-B0
+# ============================================================
+
+model = efficientnet_b0(
+    weights=EfficientNet_B0_Weights.DEFAULT
+)
+
 model.classifier = nn.Sequential(
     nn.Dropout(p=0.3),
     nn.Linear(1280, 2)
@@ -74,11 +157,9 @@ model.classifier = nn.Sequential(
 
 model = model.to(device)
 
-print("\nEfficientNet-B0 loaded.")
-
 
 # ============================================================
-# 4. Loss function
+# 7. Loss
 # ============================================================
 
 criterion = nn.CrossEntropyLoss(
@@ -88,8 +169,12 @@ criterion = nn.CrossEntropyLoss(
 
 
 # ============================================================
-# 5. Optimizer
+# 8. Optimizer
 # ============================================================
+
+# IMPORTANT:
+# Start a fresh optimizer for the NEW 10K dataset.
+# We load the old model weights, but NOT the old optimizer state.
 
 optimizer = torch.optim.AdamW(
     model.parameters(),
@@ -99,7 +184,7 @@ optimizer = torch.optim.AdamW(
 
 
 # ============================================================
-# 6. Learning-rate scheduler
+# 9. Scheduler
 # ============================================================
 
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -111,46 +196,115 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
 
 
 # ============================================================
-# 7. Mixed precision
+# 10. Mixed precision
 # ============================================================
 
 if device.type == "cuda":
-    scaler = torch.amp.GradScaler("cuda")
+
+    scaler = torch.amp.GradScaler(
+        "cuda"
+    )
+
 else:
+
     scaler = None
 
 
 # ============================================================
-# 8. Training settings
+# 11. Load friend's trained model weights
 # ============================================================
 
-NUM_EPOCHS = 8
-PATIENCE = 3
-
+start_epoch = 0
 best_f1 = 0.0
-best_epoch = 0
-epochs_without_improvement = 0
 
-BEST_MODEL_PATH = (
-    "/content/drive/MyDrive/"
-    "efficientnet_b0_best.pth"
-)
-
-FINAL_MODEL_PATH = (
-    "/content/drive/MyDrive/"
-    "efficientnet_b0_final.pth"
-)
-
-
-# ============================================================
-# 9. Training loop
-# ============================================================
-
-for epoch in range(NUM_EPOCHS):
+if RESUME_CHECKPOINT.exists():
 
     print("\n" + "=" * 60)
-    print(f"EPOCH {epoch + 1}/{NUM_EPOCHS}")
+    print("Loading friend's trained model weights")
     print("=" * 60)
+
+    checkpoint = torch.load(
+        RESUME_CHECKPOINT,
+        map_location=device
+    )
+
+    # Full checkpoint
+    if "model_state_dict" in checkpoint:
+
+        model.load_state_dict(
+            checkpoint["model_state_dict"]
+        )
+
+        print("\nModel weights loaded successfully.")
+
+        print(
+            "Previous validation F1:",
+            checkpoint.get("val_f1", "N/A")
+        )
+
+        print(
+            "\nStarting a NEW training phase."
+        )
+
+        print(
+            "Old optimizer state will NOT be restored."
+        )
+
+    # Plain model state_dict
+    else:
+
+        model.load_state_dict(
+            checkpoint
+        )
+
+        print(
+            "\nModel weights loaded successfully."
+        )
+
+        print(
+            "Optimizer state was not available."
+        )
+
+else:
+
+    raise FileNotFoundError(
+        "\nFriend's trained checkpoint was not found:\n"
+        f"{RESUME_CHECKPOINT}\n\n"
+        "Copy the .pth checkpoint into:\n"
+        "ml/image/models/"
+    )
+
+
+# ============================================================
+# 12. Training settings
+# ============================================================
+
+# Train the loaded model on the NEW 10K dataset.
+EPOCHS = 8
+
+PATIENCE = 3
+
+epochs_without_improvement = 0
+
+best_model_state = copy.deepcopy(
+    model.state_dict()
+)
+
+
+# ============================================================
+# 13. Training loop
+# ============================================================
+
+for epoch in range(EPOCHS):
+
+    print("\n" + "=" * 60)
+
+    print(
+        f"EPOCH {epoch + 1}/{EPOCHS}"
+    )
+
+    print("=" * 60)
+
 
     # --------------------------------------------------------
     # Training
@@ -159,8 +313,11 @@ for epoch in range(NUM_EPOCHS):
     model.train()
 
     running_loss = 0.0
+
     correct = 0
+
     total = 0
+
 
     for images, labels, _ in train_loader:
 
@@ -174,9 +331,11 @@ for epoch in range(NUM_EPOCHS):
             non_blocking=True
         )
 
+
         optimizer.zero_grad(
             set_to_none=True
         )
+
 
         if device.type == "cuda":
 
@@ -192,11 +351,17 @@ for epoch in range(NUM_EPOCHS):
                     labels
                 )
 
-            scaler.scale(loss).backward()
 
-            scaler.step(optimizer)
+            scaler.scale(
+                loss
+            ).backward()
+
+            scaler.step(
+                optimizer
+            )
 
             scaler.update()
+
 
         else:
 
@@ -211,8 +376,10 @@ for epoch in range(NUM_EPOCHS):
 
             optimizer.step()
 
+
         running_loss += (
-            loss.item() * images.size(0)
+            loss.item()
+            * images.size(0)
         )
 
         predictions = torch.argmax(
@@ -221,15 +388,19 @@ for epoch in range(NUM_EPOCHS):
         )
 
         correct += (
-            (predictions == labels)
-            .sum()
-            .item()
-        )
+            predictions == labels
+        ).sum().item()
 
         total += labels.size(0)
 
-    train_loss = running_loss / total
-    train_acc = correct / total
+
+    train_loss = (
+        running_loss / total
+    )
+
+    train_acc = (
+        correct / total
+    )
 
 
     # --------------------------------------------------------
@@ -238,11 +409,14 @@ for epoch in range(NUM_EPOCHS):
 
     model.eval()
 
-    val_loss = 0.0
+    all_labels = []
+
+    all_predictions = []
+
+    val_loss_total = 0.0
+
     val_total = 0
 
-    all_labels = []
-    all_predictions = []
 
     with torch.no_grad():
 
@@ -257,6 +431,7 @@ for epoch in range(NUM_EPOCHS):
                 device,
                 non_blocking=True
             )
+
 
             if device.type == "cuda":
 
@@ -281,16 +456,20 @@ for epoch in range(NUM_EPOCHS):
                     labels
                 )
 
-            val_loss += (
-                loss.item() * images.size(0)
+
+            val_loss_total += (
+                loss.item()
+                * images.size(0)
             )
 
             val_total += labels.size(0)
+
 
             predictions = torch.argmax(
                 outputs,
                 dim=1
             )
+
 
             all_labels.extend(
                 labels.cpu().numpy()
@@ -301,9 +480,12 @@ for epoch in range(NUM_EPOCHS):
             )
 
 
-    val_loss = val_loss / val_total
+    val_loss = (
+        val_loss_total / val_total
+    )
 
-    val_acc = accuracy_score(
+
+    val_accuracy = accuracy_score(
         all_labels,
         all_predictions
     )
@@ -331,9 +513,9 @@ for epoch in range(NUM_EPOCHS):
     # Scheduler
     # --------------------------------------------------------
 
-    scheduler.step(val_f1)
-
-    current_lr = optimizer.param_groups[0]["lr"]
+    scheduler.step(
+        val_f1
+    )
 
 
     # --------------------------------------------------------
@@ -341,29 +523,31 @@ for epoch in range(NUM_EPOCHS):
     # --------------------------------------------------------
 
     print(
-        f"Train Loss: {train_loss:.4f} | "
-        f"Train Acc: {train_acc * 100:.2f}%"
+        f"\nTrain Loss: {train_loss:.4f}"
     )
 
     print(
-        f"Val Loss: {val_loss:.4f} | "
-        f"Val Acc: {val_acc * 100:.2f}%"
+        f"Train Accuracy: {train_acc:.4f}"
     )
 
     print(
-        f"Val Precision: {val_precision * 100:.2f}%"
+        f"Val Loss: {val_loss:.4f}"
     )
 
     print(
-        f"Val Recall: {val_recall * 100:.2f}%"
+        f"Val Accuracy: {val_accuracy:.4f}"
     )
 
     print(
-        f"Val F1: {val_f1 * 100:.2f}%"
+        f"Val Precision: {val_precision:.4f}"
     )
 
     print(
-        f"Learning Rate: {current_lr:.2e}"
+        f"Val Recall: {val_recall:.4f}"
+    )
+
+    print(
+        f"Val F1: {val_f1:.4f}"
     )
 
 
@@ -374,58 +558,79 @@ for epoch in range(NUM_EPOCHS):
     if val_f1 > best_f1:
 
         best_f1 = val_f1
-        best_epoch = epoch + 1
-        epochs_without_improvement = 0
+
+        best_model_state = copy.deepcopy(
+            model.state_dict()
+        )
 
         torch.save(
             {
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-                "epoch": epoch + 1,
-                "val_f1": val_f1,
-                "val_accuracy": val_acc
+                "model_state_dict":
+                    model.state_dict(),
+
+                "optimizer_state_dict":
+                    optimizer.state_dict(),
+
+                "epoch":
+                    epoch + 1,
+
+                "val_f1":
+                    val_f1,
+
+                "val_accuracy":
+                    val_accuracy
             },
-            BEST_MODEL_PATH
+            NEW_BEST_CHECKPOINT
         )
 
+        epochs_without_improvement = 0
+
         print(
-            f"✓ NEW BEST MODEL "
-            f"(F1 = {val_f1 * 100:.2f}%)"
+            "\n✓ New best model saved."
         )
 
     else:
 
         epochs_without_improvement += 1
 
-        print(
-            f"No improvement "
-            f"({epochs_without_improvement}/{PATIENCE})"
-        )
-
 
     # --------------------------------------------------------
     # Early stopping
     # --------------------------------------------------------
 
-    if epochs_without_improvement >= PATIENCE:
+    if (
+        epochs_without_improvement
+        >= PATIENCE
+    ):
 
-        print("\nEarly stopping triggered.")
+        print(
+            "\nEarly stopping."
+        )
 
         break
 
 
 # ============================================================
-# 10. Save final model
+# 14. Restore best model
 # ============================================================
 
-torch.save(
-    model.state_dict(),
-    FINAL_MODEL_PATH
+model.load_state_dict(
+    best_model_state
 )
 
 
 # ============================================================
-# 11. Final evaluation
+# 15. Save final model
+# ============================================================
+
+torch.save(
+    model.state_dict(),
+    NEW_FINAL_CHECKPOINT
+)
+
+
+# ============================================================
+# 16. Final output
 # ============================================================
 
 print("\n" + "=" * 60)
@@ -433,35 +638,18 @@ print("TRAINING COMPLETE")
 print("=" * 60)
 
 print(
-    f"Best epoch: {best_epoch}"
+    "\nBest validation F1:",
+    round(best_f1, 4)
 )
 
 print(
-    f"Best validation F1: "
-    f"{best_f1 * 100:.2f}%"
+    "\nFinal model:",
+    NEW_FINAL_CHECKPOINT
 )
 
 print(
-    "\nBest model saved to:"
+    "\nBest model:",
+    NEW_BEST_CHECKPOINT
 )
 
-print(BEST_MODEL_PATH)
-
-print(
-    "\nFinal model saved to:"
-)
-
-print(FINAL_MODEL_PATH)
-
-
-# ============================================================
-# 12. Confusion matrix
-# ============================================================
-
-cm = confusion_matrix(
-    all_labels,
-    all_predictions
-)
-
-print("\nConfusion Matrix:")
-print(cm)
+print("=" * 60)

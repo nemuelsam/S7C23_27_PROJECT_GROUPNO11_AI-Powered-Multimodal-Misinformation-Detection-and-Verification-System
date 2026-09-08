@@ -1,0 +1,163 @@
+EfficientNet-B0 Image Model Results
+================================
+
+Experiment: New Non-Overlapping 10K Image Training Set
+
+Training dataset
+----------------
+Original usable training rows: 562,466
+Original sample: 10,000 images
+New sample: 10,000 images
+Overlap with original 10K: 0
+
+New sample composition:
+Fake (label 0): 5,000
+True (label 1): 5,000
+
+Local images successfully available: 9,440
+Missing images: 560
+
+Actual training distribution:
+Fake (label 0): 4,778
+True (label 1): 4,662
+
+Validation samples available: 10,539
+
+Hardware
+--------
+GPU: NVIDIA GeForce RTX 2050
+VRAM: 4 GB
+Device: CUDA
+
+Training configuration
+----------------------
+Model: EfficientNet-B0
+Starting weights: Friend's trained efficientnet_b0_best.pth
+Optimizer: AdamW
+Learning rate: 1e-5
+Weight decay: 1e-4
+Loss: CrossEntropyLoss
+Class weighting: Yes
+Label smoothing: 0.05
+Scheduler: ReduceLROnPlateau
+Scheduler mode: max
+Scheduler factor: 0.5
+Scheduler patience: 1
+Maximum epochs: 8
+Early stopping patience: 3
+Mixed precision: Enabled on CUDA
+Batch size: 16
+DataLoader workers: 0
+
+Important:
+The old optimizer state was NOT restored.
+Only the friend's trained model weights were loaded.
+This experiment was treated as a new training phase on the new 10K sample.
+
+Epoch Results
+-------------
+Epoch 1
+Train Loss: 0.5110
+Train Accuracy: 0.7690
+Val Loss: 0.4992
+Val Accuracy: 0.7731
+Val Precision: 0.7324
+Val Recall: 0.8318
+Val F1: 0.7790
+
+Epoch 2
+Train Loss: 0.4984
+Train Accuracy: 0.7806
+Val Loss: 0.4887
+Val Accuracy: 0.7820
+Val Precision: 0.7245
+Val Recall: 0.8819
+Val F1: 0.7955
+
+Epoch 3
+Train Loss: 0.4904
+Train Accuracy: 0.7784
+Val Loss: 0.4839
+Val Accuracy: 0.7848
+Val Precision: 0.7388
+Val Recall: 0.8543
+Val F1: 0.7923
+
+Epoch 4
+Train Loss: 0.4735
+Train Accuracy: 0.7943
+Val Loss: 0.4850
+Val Accuracy: 0.7836
+Val Precision: 0.7331
+Val Recall: 0.8644
+Val F1: 0.7933
+
+Epoch 5  <-- BEST
+Train Loss: 0.4599
+Train Accuracy: 0.8014
+Val Loss: 0.4779
+Val Accuracy: 0.7889
+Val Precision: 0.7343
+Val Recall: 0.8786
+Val F1: 0.8000
+
+Epoch 6
+Train Loss: 0.4569
+Train Accuracy: 0.8029
+Val Loss: 0.4794
+Val Accuracy: 0.7889
+Val Precision: 0.7375
+Val Recall: 0.8705
+Val F1: 0.7985
+
+Epoch 7
+Train Loss: 0.4501
+Train Accuracy: 0.8106
+Val Loss: 0.4795
+Val Accuracy: 0.7891
+Val Precision: 0.7422
+Val Recall: 0.8598
+Val F1: 0.7967
+
+Epoch 8
+Train Loss: 0.4449
+Train Accuracy: 0.8147
+Val Loss: 0.4829
+Val Accuracy: 0.7851
+Val Precision: 0.7477
+Val Recall: 0.8344
+Val F1: 0.7887
+
+Final result
+------------
+Best validation F1: 0.8000 (80.00%)
+Best epoch: 5
+
+Best epoch metrics:
+Validation Accuracy: 78.89%
+Validation Precision: 73.43%
+Validation Recall: 87.86%
+Validation F1: 80.00%
+
+Previous friend's checkpoint validation F1:
+79.89%
+
+New experiment best validation F1:
+80.00%
+
+Note:
+The friend's original result and this new experiment used different validation
+set sizes/setup. Therefore, the 79.89% and 80.00% F1 scores should not be
+treated as a strict apples-to-apples comparison unless evaluated on the same
+validation set.
+
+Model files
+-----------
+Best new model:
+ml/image/models/efficientnet_b0_new10k_best.pth
+
+Final new model:
+ml/image/models/efficientnet_b0_new10k_final.pth
+
+Recommended model for later multimodal fusion:
+efficientnet_b0_new10k_best.pth
