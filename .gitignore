@@ -37,6 +37,7 @@ datasets/*
 
 #Trained DistilBERT model and checkpoints
 ml/text/distilbert_model/
+ml/text/distilbert_model_50k/
 
 # Model checkpoints / experiment outputs
 checkpoints/
