@@ -1,0 +1,12 @@
+DistilBERT Text Model Results
+=============================
+
+eval_loss: 0.3503856360912323
+eval_accuracy: 0.8635704897037512
+eval_precision: 0.8287268958369322
+eval_recall: 0.8228987993138936
+eval_f1: 0.8258025647646097
+eval_runtime: 185.5351
+eval_samples_per_second: 319.843
+eval_steps_per_second: 79.963
+epoch: 2.0
