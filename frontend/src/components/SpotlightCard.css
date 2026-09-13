@@ -1,0 +1,25 @@
+.spotlight-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.spotlight-effect {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  z-index: 0;
+}
+
+.spotlight-card:hover .spotlight-effect {
+  opacity: 1;
+}
+
+.spotlight-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}

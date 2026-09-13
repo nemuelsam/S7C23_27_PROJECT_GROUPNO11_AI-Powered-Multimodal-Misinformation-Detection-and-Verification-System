@@ -853,3 +853,30 @@ footer span {
     height: 125px;
   }
 }
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo > span:last-child {
+  font-weight: 700;
+  color: #0f172a;
+
+  /* subtle depth */
+  text-shadow:
+    1px 1px 0 #dbe3ed,
+    2px 2px 0 #cbd5e1,
+    3px 3px 6px rgba(15, 23, 42, 0.12);
+
+  transition: transform 0.25s ease, text-shadow 0.25s ease;
+}
+
+.logo:hover > span:last-child {
+  transform: translateY(-1px);
+
+  text-shadow:
+    1px 1px 0 #dbe3ed,
+    2px 2px 0 #cbd5e1,
+    3px 4px 8px rgba(37, 99, 235, 0.18);
+}

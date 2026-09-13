@@ -1,5 +1,7 @@
 import { useState } from "react";
 import "./App.css";
+import SpotlightCard from "./components/SpotlightCard";
+
 
 function App() {
   const [text, setText] = useState("");
@@ -9,6 +11,9 @@ function App() {
 
   return (
     <div className="app">
+
+      {/* ================= SPLASH CURSOR ================= */}
+      
 
       {/* ================= NAVBAR ================= */}
       <nav className="navbar">
@@ -108,42 +113,43 @@ function App() {
           {/* UPLOADS */}
           <div className="upload-grid">
 
-            {/* IMAGE */}
-            <div className="upload-card">
+            <SpotlightCard className="upload-card">
 
-              <div className="upload-icon">
-                📷
-              </div>
+  <div className="upload-icon">
+    📷
+  </div>
 
-              <h3>Image</h3>
+  <h3>Image</h3>
 
-              <p>
-                Analyze photographs, screenshots, and news images.
-              </p>
+  <p>
+    Analyze photographs, screenshots, and news images.
+  </p>
 
-              <label className="file-button">
-                Choose Image
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) =>
-                    setImage(e.target.files[0])
-                  }
-                />
-              </label>
+  <label className="file-button">
+    Choose Image
+    <input
+      type="file"
+      accept="image/*"
+      hidden
+      onChange={(e) =>
+        setImage(e.target.files[0])
+      }
+    />
+  </label>
 
-              {image && (
-                <div className="selected-file">
-                  ✓ {image.name}
-                </div>
-              )}
+  {image && (
+    <div className="selected-file">
+      ✓ {image.name}
+    </div>
+  )}
 
-            </div>
+</SpotlightCard>
 
 
             {/* VIDEO */}
-            <div className="upload-card">
+            
+
+              <SpotlightCard className="upload-card">
 
               <div className="upload-icon">
                 🎥
@@ -157,6 +163,7 @@ function App() {
 
               <label className="file-button">
                 Choose Video
+
                 <input
                   type="file"
                   accept="video/*"
@@ -172,12 +179,14 @@ function App() {
                   ✓ {video.name}
                 </div>
               )}
+             </SpotlightCard>   
+           
 
-            </div>
-
-
+              
             {/* PDF */}
-            <div className="upload-card">
+            
+
+              <SpotlightCard className="upload-card">
 
               <div className="upload-icon">
                 📄
@@ -191,6 +200,7 @@ function App() {
 
               <label className="file-button">
                 Choose PDF
+
                 <input
                   type="file"
                   accept=".pdf,application/pdf"
@@ -206,8 +216,8 @@ function App() {
                   ✓ {pdf.name}
                 </div>
               )}
-
-            </div>
+            </SpotlightCard>
+            
 
           </div>
 
@@ -240,7 +250,7 @@ function App() {
         </h2>
 
         <p className="section-description">
-         AI Misinformation Detector combines multiple types of information to
+          AI Misinformation Detector combines multiple types of information to
           provide a more comprehensive misinformation assessment.
         </p>
 
