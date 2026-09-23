@@ -1,153 +1,171 @@
 EfficientNet-B0 Image Model Results
-====================================
 
-Project:
-AI-Powered Multimodal Misinformation Detection and Verification System
+Project: AI-Powered Multimodal Misinformation Detection and Verification
+System
 
-Model:
-EfficientNet-B0
-Task:
-Binary Image Classification
-Labels:
-0 = Fake / Misinformation
-1 = True / Real
+Model: EfficientNet-B0
 
+Task: Binary Image Classification
+
+Labels: 0 = Fake / Misinformation 1 = True / Real
 
 EXPERIMENT 1 — ORIGINAL MODEL (GOOGLE COLAB)
-======================================================
 
-Training platform:
-Google Colab
+Training platform: Google Colab
 
-Training dataset:
-Fakeddit
-Target training samples:
-10,000 images
+GPU: NVIDIA Tesla T4
 
-Successfully downloaded/trained:
-9,470 images
+Training dataset: Fakeddit
 
-Validation images:
-946
+Target training samples: 10,000 images
 
-Best epoch:
-8 / 8
+Successfully downloaded/trained: 9,470 images
 
-Validation Accuracy:
-76.64%
+Class counts: Fake (0): 4,834 True (1): 4,636
 
-Precision:
-69.35%
+Class weights: Fake (0): 0.9795 True (1): 1.0214
 
-Recall:
-94.21%
+Training configuration: - EfficientNet-B0 pretrained weights were
+loaded. - Learning rate: 1.00e-05 - Maximum epochs: 8 - Best model
+selected using validation F1-score.
 
-F1-score:
-79.89%
+Validation images: 946
 
-Checkpoint:
-efficientnet_b0_best.pth
+EPOCH-WISE RESULTS
 
-Note:
-This is the original EfficientNet-B0 model trained by the team member
-in Google Colab. The checkpoint is preserved as the baseline model.
+Epoch 1: Train Loss: 0.6628 | Train Accuracy: 60.20% Val Loss: 0.6296 |
+Val Accuracy: 67.12% Val Precision: 64.82% | Val Recall: 72.75% | Val
+F1: 68.55% Learning Rate: 1.00e-05 Status: NEW BEST MODEL
 
+Epoch 2: Train Loss: 0.6001 | Train Accuracy: 69.24% Val Loss: 0.5772 |
+Val Accuracy: 73.47% Val Precision: 67.42% | Val Recall: 89.27% | Val
+F1: 76.82% Learning Rate: 1.00e-05 Status: NEW BEST MODEL
+
+Epoch 3: Train Loss: 0.5515 | Train Accuracy: 73.94% Val Loss: 0.5505 |
+Val Accuracy: 73.68% Val Precision: 66.82% | Val Recall: 92.49% | Val
+F1: 77.59% Learning Rate: 1.00e-05 Status: NEW BEST MODEL
+
+Epoch 4: Train Loss: 0.5254 | Train Accuracy: 75.80% Val Loss: 0.5498 |
+Val Accuracy: 73.26% Val Precision: 65.87% | Val Recall: 94.85% | Val
+F1: 77.75% Learning Rate: 1.00e-05 Status: NEW BEST MODEL
+
+Epoch 5: Train Loss: 0.5053 | Train Accuracy: 76.96% Val Loss: 0.5333 |
+Val Accuracy: 74.10% Val Precision: 66.62% | Val Recall: 95.06% | Val
+F1: 78.34% Learning Rate: 1.00e-05 Status: NEW BEST MODEL
+
+Epoch 6: Train Loss: 0.4918 | Train Accuracy: 78.31% Val Loss: 0.5298 |
+Val Accuracy: 73.47% Val Precision: 66.02% | Val Recall: 95.06% | Val
+F1: 77.92% Learning Rate: 1.00e-05 Status: NO IMPROVEMENT (1/3)
+
+Epoch 7: Train Loss: 0.4796 | Train Accuracy: 79.20% Val Loss: 0.5266 |
+Val Accuracy: 75.05% Val Precision: 67.32% | Val Recall: 95.92% | Val
+F1: 79.12% Learning Rate: 1.00e-05 Status: NEW BEST MODEL
+
+Epoch 8: Train Loss: 0.4689 | Train Accuracy: 79.78% Val Loss: 0.5132 |
+Val Accuracy: 76.64% Val Precision: 69.35% | Val Recall: 94.21% | Val
+F1: 79.89% Learning Rate: 1.00e-05 Status: NEW BEST MODEL
+
+FINAL ORIGINAL MODEL RESULTS
+
+Best epoch: 8 / 8 Validation Accuracy: 76.64% Precision: 69.35% Recall:
+94.21% F1-score: 79.89%
+
+Confusion Matrix: [[286 194] [ 27 439]]
+
+Checkpoint: efficientnet_b0_best.pth
+
+Final model: efficientnet_b0_final.pth
+
+Original checkpoint location:
+/content/drive/MyDrive/efficientnet_b0_best.pth
+
+Original final model location:
+/content/drive/MyDrive/efficientnet_b0_final.pth
+
+Note: This is the original EfficientNet-B0 model trained by the team
+member in Google Colab. The checkpoint is preserved as the baseline
+model.
 
 EXPERIMENT 2 — LOCAL FINE-TUNING (MY TRAINING)
-==============================================
 
-Training platform:
-Local laptop
+Training platform: Local laptop
 
-GPU:
-NVIDIA GeForce RTX 2050 (4 GB VRAM)
+GPU: NVIDIA GeForce RTX 2050 (4 GB VRAM)
 
-Starting checkpoint:
-efficientnet_b0_best.pth
+Starting checkpoint: efficientnet_b0_best.pth
 
-Training approach:
-Continued fine-tuning of the original EfficientNet-B0 model
+Training approach: Continued fine-tuning of the original EfficientNet-B0
+model
 
-Training data:
-Same 10,000-image training selection used for the original model
-(9,463 locally available images)
+Training data: Same 10,000-image training selection used for the
+original model (9,463 locally available images)
 
-Additional epochs:
-4 requested
-Training stopped early after epoch 11
+Additional epochs: 4 requested
 
-Validation dataset:
-10,539 available validation images
+Training stopped early: After epoch 11
 
-Epoch 9:
-Train Loss:       0.4740
-Train Accuracy:   78.95%
-Val Loss:         0.5039
-Val Accuracy:     77.04%
-Val Precision:    74.16%
-Val Recall:       80.14%
-Val F1:           77.04%
+Validation dataset: 10,539 available validation images
 
-Epoch 10:
-Train Loss:       0.4531
-Train Accuracy:   80.72%
-Val Loss:         0.4962
-Val Accuracy:     77.74%
-Val Precision:    73.95%
-Val Recall:       82.88%
-Val F1:           78.16%
+EPOCH-WISE LOCAL RESULTS
 
-Epoch 11:
-Train Loss:       0.4452
-Train Accuracy:   81.26%
-Val Loss:         0.4899
-Val Accuracy:     78.01%
-Val Precision:    71.89%
-Val Recall:       89.10%
-Val F1:           79.57%
+Epoch 9: Train Loss: 0.4740 | Train Accuracy: 78.95% Val Loss: 0.5039 |
+Val Accuracy: 77.04% Val Precision: 74.16% | Val Recall: 80.14% | Val
+F1: 77.04%
 
-Training status:
-Early stopping triggered after epoch 11.
+Epoch 10: Train Loss: 0.4531 | Train Accuracy: 80.72% Val Loss: 0.4962 |
+Val Accuracy: 77.74% Val Precision: 73.95% | Val Recall: 82.88% | Val
+F1: 78.16%
 
-Best validation F1 during local continuation:
-79.89%
+Epoch 11: Train Loss: 0.4452 | Train Accuracy: 81.26% Val Loss: 0.4899 |
+Val Accuracy: 78.01% Val Precision: 71.89% | Val Recall: 89.10% | Val
+F1: 79.57%
 
-Best model:
-The original checkpoint remained the best-performing model
+Training status: Early stopping triggered after epoch 11.
+
+Best validation F1 during local continuation: 79.89%
+
+Best model: The original checkpoint remained the best-performing model
 with validation F1 = 79.89%.
 
-Local model files:
-efficientnet_b0_best_local.pth
-efficientnet_b0_final_local.pth
+LOCAL MODEL FILES
 
+efficientnet_b0_best_local.pth efficientnet_b0_final_local.pth
 
 COMPARISON
-==========
 
                          Original       Local Fine-tuning
                          (Colab)        (Epoch 11)
------------------------------------------------------------
-Validation Accuracy      76.64%         78.01%
-Precision                69.35%         71.89%
-Recall                   94.21%         89.10%
-F1-score                 79.89%         79.57%
 
-Interpretation:
-The local fine-tuning improved validation accuracy and precision at
-epoch 11, but the F1-score did not surpass the original model's
-79.89% F1-score. Therefore, the original best checkpoint remains
+------------------------------------------------------------------------
+
+Validation Accuracy 76.64% 78.01% Precision 69.35% 71.89% Recall 94.21%
+89.10% F1-score 79.89% 79.57%
+
+Interpretation: The local fine-tuning improved validation accuracy and
+precision at epoch 11, but the F1-score did not surpass the original
+model’s 79.89% F1-score. Therefore, the original best checkpoint remains
 the best model from these two experiments.
 
+IMPORTANT VALIDATION NOTE
+
+The original Google Colab experiment and the local fine-tuning
+experiment used different validation sets:
+
+-   Original Colab validation set: 946 images
+-   Local validation set: 10,539 images
+
+Therefore, the metrics from the two experiments should not be treated as
+a strict apples-to-apples comparison. The original checkpoint is
+retained as the baseline checkpoint, while the local model files are
+preserved for future experiments.
 
 NEXT EXPERIMENT
-===============
 
 For the next EfficientNet experiment, a larger and different training
 sample should be used rather than repeatedly training on the same
 10,000-image selection.
 
-Recommended target:
-50,000 images (25,000 Fake + 25,000 True)
+Recommended target: 50,000 images (25,000 Fake + 25,000 True)
 
 The original efficientnet_b0_best.pth should be preserved as the
 baseline checkpoint for comparison.
