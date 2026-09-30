@@ -1,0 +1,122 @@
+MLP MULTIMODAL FUSION RESULTS
+======================================================================
+
+Project:
+AI-Powered Multimodal Misinformation Detection and Verification System
+
+Fusion method:
+Feature-level early fusion
+
+Base models:
+DistilBERT 50K
+EfficientNet-B0 new10k best
+
+Base model feature dimensions:
+DistilBERT: 768
+EfficientNet-B0: 1280
+Combined: 2048
+
+MLP architecture:
+2048 -> 512 -> 128 -> 2
+ReLU activation
+Batch Normalization
+Dropout: 0.30
+
+Base models were frozen during MLP training.
+
+Dataset:
+Training samples: 7377
+Validation samples: 1581
+Holdout samples: 1581
+
+Training configuration:
+Batch size: 64
+Learning rate: 0.0001
+Weight decay: 0.0001
+Maximum epochs: 30
+Early stopping patience: 5
+
+======================================================================
+EPOCH RESULTS
+======================================================================
+
+Epoch 1:
+Train Loss: 0.3160
+Train Accuracy: 86.46%
+Val Loss: 0.2847
+Val Accuracy: 88.17%
+Val Precision: 85.50%
+Val Recall: 90.79%
+Val F1: 88.07%
+
+Epoch 2:
+Train Loss: 0.2488
+Train Accuracy: 89.86%
+Val Loss: 0.2802
+Val Accuracy: 88.11%
+Val Precision: 86.29%
+Val Recall: 89.47%
+Val F1: 87.86%
+
+Epoch 3:
+Train Loss: 0.2156
+Train Accuracy: 91.37%
+Val Loss: 0.2815
+Val Accuracy: 87.98%
+Val Precision: 85.01%
+Val Recall: 91.05%
+Val F1: 87.93%
+
+Epoch 4:
+Train Loss: 0.1760
+Train Accuracy: 93.57%
+Val Loss: 0.2886
+Val Accuracy: 87.86%
+Val Precision: 86.22%
+Val Recall: 88.95%
+Val F1: 87.56%
+
+Epoch 5:
+Train Loss: 0.1315
+Train Accuracy: 95.73%
+Val Loss: 0.3025
+Val Accuracy: 87.92%
+Val Precision: 86.33%
+Val Recall: 88.95%
+Val F1: 87.62%
+
+Epoch 6:
+Train Loss: 0.1092
+Train Accuracy: 96.49%
+Val Loss: 0.3145
+Val Accuracy: 87.29%
+Val Precision: 85.88%
+Val Recall: 88.03%
+Val F1: 86.94%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+
+Best epoch: 1
+Best validation F1: 88.07%
+
+Validation Results:
+Accuracy: 88.17%
+Precision: 85.50%
+Recall: 90.79%
+F1-score: 88.07%
+
+Holdout Results:
+Accuracy: 88.05%
+Precision: 85.64%
+Recall: 90.26%
+F1-score: 87.89%
+
+Holdout Confusion Matrix:
+[[706 115]
+ [ 74 686]]
+
+Model files:
+Best model: C:\Users\nemue\Documents\GitHub\S7C23_27_PROJECT_GROUPNO11_AI-Powered-Multimodal-Misinformation-Detection-and-Verification-System\ml\fusion\models\mlp_fusion_best.pth
+Final model: C:\Users\nemue\Documents\GitHub\S7C23_27_PROJECT_GROUPNO11_AI-Powered-Multimodal-Misinformation-Detection-and-Verification-System\ml\fusion\models\mlp_fusion_final.pth
