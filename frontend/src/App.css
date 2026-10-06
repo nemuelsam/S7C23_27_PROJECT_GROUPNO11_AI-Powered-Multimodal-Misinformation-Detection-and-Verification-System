@@ -880,3 +880,16 @@ footer span {
     2px 2px 0 #cbd5e1,
     3px 4px 8px rgba(37, 99, 235, 0.18);
 }
+
+.remove-file {
+  margin-left: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 5px;
+}
+
+.remove-file:hover {
+  transform: scale(1.1);
+}
